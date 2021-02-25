@@ -1,34 +1,38 @@
 const express = require('express')
+const expressHandlebars = require('express-handlebars')
 
-const shin = express()
+const app = express()
+const fortune = require('./lib/fortune')
+
+// configure Handlebars view engine
+app.engine('handlebars', expressHandlebars({
+  defaultLayout: 'main',
+}))
+app.set('view engine', 'handlebars')
+
+app.use(express.static(__dirname + '/public'))
 
 const port = process.env.PORT || 3000
 
-shin.get('/', (req, res) => {
-  res.type('text/plain')
-  res.send('Meadowlark Travel')
-})
-  
-shin.get('/about', (req, res) => {
-  res.type('text/plain')
-  res.send('About Meadowlark Travel')
+app.get('/about', (req, res) => res.render('about'))
+
+app.get('/', (req, res) => {
+  res.render('home', { fortune: fortune.getFortune() })
 })
 
 // custom 404 page
-shin.use((req, res) => {
-  res.type('text/plain')
+app.use((req, res) => {
   res.status(404)
-  res.send('404 - Not Found')
+  res.render('404')
 })
 
 // custom 500 page
-shin.use((err, req, res, next) => {
+app.use((err, req, res, next) => {
   console.error(err.message)
-  res.type('text/plain')
   res.status(500)
-  res.send('500 - Server Error')
+  res.render('500')
 })
 
-shin.listen(port, () => console.log(
+app.listen(port, () => console.log(
   `Express started on http://localhost:${port}; ` +
   `press Ctrl-C to terminate.`))
